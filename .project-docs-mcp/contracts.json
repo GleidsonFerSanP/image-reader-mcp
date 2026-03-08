@@ -1,0 +1,84 @@
+{
+  "contracts": {
+    "iimagereader": {
+      "name": "IImageReader",
+      "context": "backend",
+      "description": "Interface principal para leitura de imagens. Define o contrato que todos os leitores de imagem devem implementar, incluindo suporte a leitura de arquivos locais, URLs e buffers.",
+      "interfaceCode": "interface IImageReader {\n  /**\n   * Lê uma imagem de uma fonte (caminho, URL ou Buffer)\n   * @param source - Caminho do arquivo, URL ou Buffer da imagem\n   * @returns Dados da imagem incluindo buffer, formato e dimensões\n   */\n  read(source: string | Buffer): Promise<ImageData>;\n  \n  /**\n   * Verifica se o leitor suporta o formato especificado\n   * @param format - Formato da imagem (png, jpg, gif, webp, svg, etc)\n   */\n  supports(format: string): boolean;\n}\n\ninterface ImageData {\n  buffer: Buffer;\n  format: string;\n  width: number;\n  height: number;\n  base64?: string;\n}",
+      "rules": [
+        "Deve retornar Promise para operações assíncronas",
+        "Deve validar o formato da imagem antes de processar",
+        "Deve lançar ImageReadError em caso de falha",
+        "Deve suportar pelo menos PNG, JPEG, GIF e WebP",
+        "Deve incluir validação de tamanho máximo de arquivo"
+      ],
+      "examples": [
+        "class FileImageReader implements IImageReader { async read(source: string | Buffer): Promise<ImageData> { ... } }",
+        "class URLImageReader implements IImageReader { async read(source: string): Promise<ImageData> { ... } }"
+      ],
+      "id": "iimagereader",
+      "createdAt": "2026-01-09T14:06:49.320Z",
+      "updatedAt": "2026-01-09T14:06:49.320Z"
+    },
+    "iimageprocessor": {
+      "name": "IImageProcessor",
+      "context": "backend",
+      "description": "Interface para processamento e manipulação de imagens. Define operações como redimensionamento, conversão de formato, aplicação de filtros e otimização.",
+      "interfaceCode": "interface IImageProcessor {\n  /**\n   * Redimensiona uma imagem mantendo aspect ratio\n   */\n  resize(image: ImageData, options: ResizeOptions): Promise<ImageData>;\n  \n  /**\n   * Converte a imagem para outro formato\n   */\n  convert(image: ImageData, targetFormat: string): Promise<ImageData>;\n  \n  /**\n   * Converte imagem para base64 string\n   */\n  toBase64(image: ImageData): Promise<string>;\n  \n  /**\n   * Otimiza a imagem reduzindo tamanho sem perder muita qualidade\n   */\n  optimize(image: ImageData, quality?: number): Promise<ImageData>;\n}\n\ninterface ResizeOptions {\n  width?: number;\n  height?: number;\n  fit?: 'cover' | 'contain' | 'fill';\n  maintainAspectRatio?: boolean;\n}",
+      "rules": [
+        "Todas as operações devem ser não-destrutivas (retornam nova ImageData)",
+        "Deve validar parâmetros de entrada",
+        "Deve manter metadados quando possível",
+        "Deve implementar error handling apropriado",
+        "Operações devem ser otimizadas para performance"
+      ],
+      "examples": [
+        "class SharpImageProcessor implements IImageProcessor { async resize(image: ImageData, width: number, height: number): Promise<ImageData> { ... } }"
+      ],
+      "id": "iimageprocessor",
+      "createdAt": "2026-01-09T14:06:49.331Z",
+      "updatedAt": "2026-01-09T14:06:49.331Z"
+    },
+    "imetadataextractor": {
+      "name": "IMetadataExtractor",
+      "context": "backend",
+      "description": "Interface para extração de metadados EXIF, IPTC e XMP de imagens. Essencial para fornecer informações detalhadas sobre a imagem aos agentes de AI.",
+      "interfaceCode": "interface IMetadataExtractor {\n  /**\n   * Extrai metadados de uma imagem\n   */\n  extract(image: ImageData): Promise<ImageMetadata>;\n  \n  /**\n   * Verifica se a imagem contém metadados\n   */\n  hasMetadata(image: ImageData): Promise<boolean>;\n}\n\ninterface ImageMetadata {\n  exif?: ExifData;\n  iptc?: IptcData;\n  xmp?: XmpData;\n  basic: {\n    format: string;\n    width: number;\n    height: number;\n    size: number;\n    colorSpace?: string;\n    hasAlpha?: boolean;\n  };\n}\n\ninterface ExifData {\n  make?: string;\n  model?: string;\n  dateTime?: string;\n  gps?: {\n    latitude?: number;\n    longitude?: number;\n    altitude?: number;\n  };\n  camera?: {\n    iso?: number;\n    focalLength?: number;\n    aperture?: number;\n    shutterSpeed?: number;\n  };\n}",
+      "rules": [
+        "Deve retornar objeto vazio se não houver metadados",
+        "Não deve falhar se metadados estiverem corrompidos",
+        "Deve extrair pelo menos informações básicas (formato, dimensões, tamanho)",
+        "Deve normalizar dados GPS para formato decimal",
+        "Deve incluir tratamento para diferentes encodings de texto"
+      ],
+      "examples": [
+        "class ExifMetadataExtractor implements IMetadataExtractor { async extract(image: ImageData): Promise<ImageMetadata> { ... } }"
+      ],
+      "id": "imetadataextractor",
+      "createdAt": "2026-01-09T14:06:49.332Z",
+      "updatedAt": "2026-01-09T14:06:49.332Z"
+    },
+    "imcptool": {
+      "name": "IMCPTool",
+      "context": "backend",
+      "description": "Interface para definição de tools do MCP. Cada tool é uma função exposta pelo servidor MCP que pode ser chamada por agentes de AI.",
+      "interfaceCode": "interface IMCPTool {\n  /**\n   * Nome único do tool (snake_case)\n   */\n  name: string;\n  \n  /**\n   * Descrição detalhada do que o tool faz\n   */\n  description: string;\n  \n  /**\n   * JSON Schema para validação de parâmetros\n   */\n  inputSchema: {\n    type: 'object';\n    properties: Record<string, JSONSchemaProperty>;\n    required?: string[];\n  };\n  \n  /**\n   * Handler que executa a lógica do tool\n   */\n  handler: (args: unknown) => Promise<MCPToolResponse>;\n}\n\ninterface MCPToolResponse {\n  content: Array<{\n    type: 'text' | 'image' | 'resource';\n    text?: string;\n    data?: string;\n    mimeType?: string;\n  }>;\n  isError?: boolean;\n}\n\ninterface JSONSchemaProperty {\n  type: string;\n  description: string;\n  enum?: string[];\n  items?: JSONSchemaProperty;\n  properties?: Record<string, JSONSchemaProperty>;\n}",
+      "rules": [
+        "Tool names devem ser em snake_case",
+        "Descrições devem ser claras e incluir exemplos de uso",
+        "inputSchema deve seguir JSON Schema Draft 7",
+        "Handler deve sempre retornar MCPToolResponse",
+        "Erros devem ser capturados e retornados com isError: true",
+        "Responses devem incluir type apropriado (text, image, resource)"
+      ],
+      "examples": [
+        "const readImageTool: IMCPTool = { name: 'read_image', description: 'Reads and returns image data', inputSchema: {...}, handler: async (args) => {...} }"
+      ],
+      "id": "imcptool",
+      "createdAt": "2026-01-09T14:06:49.332Z",
+      "updatedAt": "2026-01-09T14:06:49.332Z"
+    }
+  },
+  "lastUpdated": "2026-01-09T14:06:49.332Z",
+  "version": "1.0.0"
+}

@@ -1,0 +1,54 @@
+{
+  "patterns": {
+    "mcp-tool-definition-pattern": {
+      "name": "MCP Tool Definition Pattern",
+      "context": "backend",
+      "description": "Pattern para criação de MCP tools. Cada tool é definido como um objeto que implementa IMCPTool e é registrado no servidor MCP. O pattern inclui validação de schema, error handling padronizado e respostas estruturadas.",
+      "pattern": "// Pattern structure:\\n// 1. Define tool object with IMCPTool interface\\n// 2. Use snake_case for tool name\\n// 3. Provide clear description with usage examples\\n// 4. Define strict inputSchema with JSON Schema\\n// 5. Implement handler with try-catch\\n// 6. Return structured MCPToolResponse\\n// 7. Handle errors gracefully with isError flag\\n\\nexport const toolName: IMCPTool = {\\n  name: 'tool_name',\\n  description: 'Description with examples',\\n  inputSchema: {\\n    type: 'object',\\n    properties: { /* ... */ },\\n    required: ['param1']\\n  },\\n  handler: async (args: unknown) => {\\n    try {\\n      // 1. Type cast and validate args\\n      // 2. Execute business logic\\n      // 3. Return success response\\n    } catch (error) {\\n      // Return error response\\n      return {\\n        content: [{ type: 'text', text: error.message }],\\n        isError: true\\n      };\\n    }\\n  }\\n};",
+      "examples": [
+        "export const readImageTool: IMCPTool = {\n  name: 'read_image',\n  description: 'Reads an image from file path or URL and returns image data',\n  inputSchema: {\n    type: 'object',\n    properties: {\n      source: {\n        type: 'string',\n        description: 'File path or URL of the image'\n      },\n      includeMetadata: {\n        type: 'boolean',\n        description: 'Whether to include EXIF metadata',\n        default: false\n      }\n    },\n    required: ['source']\n  },\n  handler: async (args: unknown) => {\n    try {\n      const { source, includeMetadata } = args as ReadImageArgs;\n      const imageData = await imageReader.read(source);\n      \n      return {\n        content: [{\n          type: 'image',\n          data: imageData.base64,\n          mimeType: `image/${imageData.format}`\n        }]\n      };\n    } catch (error) {\n      return {\n        content: [{\n          type: 'text',\n          text: `Error reading image: ${error.message}`\n        }],\n        isError: true\n      };\n    }\n  }\n};"
+      ],
+      "occurrences": 1,
+      "id": "mcp-tool-definition-pattern",
+      "createdAt": "2026-01-09T14:07:24.041Z"
+    },
+    "custom-error-classes-pattern": {
+      "name": "Custom Error Classes Pattern",
+      "context": "backend",
+      "description": "Pattern para custom errors específicos do domínio de processamento de imagens. Facilita debugging e fornece mensagens de erro claras para os agentes de AI.",
+      "pattern": "// Base pattern for domain errors:\\nexport class DomainError extends Error {\\n  constructor(\\n    message: string,\\n    public readonly context?: Record<string, unknown>,\\n    public readonly cause?: Error\\n  ) {\\n    super(message);\\n    this.name = this.constructor.name;\\n    Error.captureStackTrace(this, this.constructor);\\n  }\\n  \\n  toJSON() {\\n    return {\\n      name: this.name,\\n      message: this.message,\\n      context: this.context,\\n      cause: this.cause?.message\\n    };\\n  }\\n}\\n\\n// Specific errors:\\nexport class ImageReadError extends DomainError {}\\nexport class ImageFormatError extends DomainError {}\\nexport class ImageProcessingError extends DomainError {}\\nexport class MetadataExtractionError extends DomainError {}",
+      "examples": [
+        "export class ImageReadError extends Error {\n  constructor(message: string, public readonly source: string, public readonly cause?: Error) {\n    super(message);\n    this.name = 'ImageReadError';\n  }\n}\n\nexport class ImageFormatError extends Error {\n  constructor(public readonly format: string, public readonly supportedFormats: string[]) {\n    super(`Unsupported image format: ${format}. Supported: ${supportedFormats.join(', ')}`);\n    this.name = 'ImageFormatError';\n  }\n}"
+      ],
+      "occurrences": 1,
+      "id": "custom-error-classes-pattern",
+      "createdAt": "2026-01-09T14:07:24.059Z"
+    },
+    "image-reader-factory-pattern": {
+      "name": "Image Reader Factory Pattern",
+      "context": "backend",
+      "description": "Pattern de Factory para criação de image readers baseado no tipo de source (file path, URL, Buffer). Implementa Strategy pattern para diferentes fontes.",
+      "pattern": "// Factory pattern for creating appropriate readers:\\nexport class ImageReaderFactory {\\n  private static readers: Map<string, IImageReader>;\\n  \\n  static getReader(source: string | Buffer): IImageReader {\\n    // Detect source type and return appropriate reader\\n    // Supports: file paths, URLs, Buffers\\n  }\\n  \\n  static registerReader(type: string, reader: IImageReader): void {\\n    // Allow custom readers to be registered\\n  }\\n}",
+      "examples": [
+        "export class ImageReaderFactory {\n  private readers: Map<string, IImageReader>;\n  \n  constructor() {\n    this.readers = new Map([\n      ['file', new FileImageReader()],\n      ['url', new URLImageReader()],\n      ['buffer', new BufferImageReader()]\n    ]);\n  }\n  \n  getReader(source: string | Buffer): IImageReader {\n    if (Buffer.isBuffer(source)) {\n      return this.readers.get('buffer')!;\n    }\n    if (source.startsWith('http://') || source.startsWith('https://')) {\n      return this.readers.get('url')!;\n    }\n    return this.readers.get('file')!;\n  }\n}"
+      ],
+      "occurrences": 1,
+      "id": "image-reader-factory-pattern",
+      "createdAt": "2026-01-09T14:07:24.060Z"
+    },
+    "vs-code-extension-with-mcp-server": {
+      "name": "VS Code Extension with MCP Server",
+      "context": "backend",
+      "description": "Pattern para estrutura de VS Code extension que hospeda o MCP server. A extensão ativa quando necessário, gerencia o lifecycle do servidor e fornece comandos para interação.",
+      "pattern": "// Extension structure:\\n// 1. extension.ts - Entry point with activate/deactivate\\n// 2. MCPServerManager - Manages server lifecycle\\n// 3. Commands registration for user interaction\\n// 4. Configuration provider for settings\\n// 5. Status bar integration for server status\\n\\n// Key files:\\n// - extension.ts (activate, deactivate)\\n// - server-manager.ts (start, stop, restart server)\\n// - package.json (contributes: commands, configuration)\\n// - server/index.ts (MCP server implementation)\\n\\n// Lifecycle:\\n// activate() -> Start server -> Register tools -> Ready\\n// deactivate() -> Stop server -> Cleanup resources",
+      "examples": [
+        "// extension.ts\nexport function activate(context: vscode.ExtensionContext) {\n  const serverManager = new MCPServerManager(context);\n  \n  context.subscriptions.push(\n    vscode.commands.registerCommand('mcp-image-reader.start', () => {\n      serverManager.start();\n    }),\n    vscode.commands.registerCommand('mcp-image-reader.stop', () => {\n      serverManager.stop();\n    })\n  );\n  \n  // Auto-start server\n  serverManager.start();\n}\n\nexport function deactivate() {\n  // Cleanup\n}"
+      ],
+      "occurrences": 1,
+      "id": "vs-code-extension-with-mcp-server",
+      "createdAt": "2026-01-09T14:07:33.230Z"
+    }
+  },
+  "lastUpdated": "2026-01-09T14:07:33.230Z",
+  "version": "1.0.0"
+}

@@ -1,0 +1,327 @@
+{
+  "features": [
+    {
+      "id": "feat-1767967694622-yyg9ywf4o",
+      "name": "Leitura de Imagens Multi-fonte",
+      "context": "Image Processing",
+      "description": "Sistema de leitura de imagens que suporta múltiplas fontes (arquivos locais, URLs, buffers) e múltiplos formatos. Fornece conversão automática para base64 para uso com AI agents.",
+      "businessRules": [
+        "Deve suportar múltiplos formatos de imagem (PNG, JPEG, GIF, WebP, SVG, BMP, TIFF)",
+        "Deve validar tamanho máximo de arquivo (default: 50MB)",
+        "Deve funcionar com caminhos absolutos, relativos e URLs",
+        "Deve retornar erro claro se arquivo não existir ou formato não suportado",
+        "Deve incluir opção de conversão automática para base64"
+      ],
+      "useCases": [
+        {
+          "description": "Agente de AI precisa ler uma imagem local do workspace do usuário",
+          "name": "Ler imagem de arquivo local",
+          "steps": [
+            "AI chama tool read_image com caminho do arquivo",
+            "Sistema valida existência do arquivo",
+            "Sistema detecta formato da imagem",
+            "Sistema lê e converte para buffer",
+            "Sistema retorna ImageData com base64",
+            "AI recebe imagem para análise"
+          ]
+        },
+        {
+          "description": "Agente de AI precisa processar uma imagem de uma URL externa",
+          "name": "Ler imagem de URL",
+          "steps": [
+            "AI chama tool read_image com URL",
+            "Sistema faz download da imagem via HTTP",
+            "Sistema valida Content-Type",
+            "Sistema processa buffer da resposta",
+            "Sistema retorna ImageData",
+            "AI usa imagem no contexto"
+          ]
+        }
+      ],
+      "relatedContracts": [
+        "IImageReader"
+      ],
+      "relatedPatterns": [
+        "Image Reader Factory Pattern",
+        "Custom Error Classes Pattern"
+      ],
+      "dependencies": [
+        "sharp",
+        "axios (para URLs)",
+        "fs/promises",
+        "@modelcontextprotocol/sdk"
+      ],
+      "apiEndpoints": [],
+      "status": "planning",
+      "tags": [
+        "image",
+        "reading",
+        "base64",
+        "multi-format"
+      ],
+      "notes": "",
+      "filePaths": [
+        "src/readers/image-reader.interface.ts",
+        "src/readers/file-image-reader.ts",
+        "src/readers/url-image-reader.ts",
+        "src/readers/buffer-image-reader.ts",
+        "src/readers/image-reader-factory.ts"
+      ],
+      "createdAt": "2026-01-09T14:08:14.622Z",
+      "updatedAt": "2026-01-09T14:08:14.622Z"
+    },
+    {
+      "id": "feat-1767967694640-9uxt0phlp",
+      "name": "Extra\\u00e7\\u00e3o de Metadados EXIF",
+      "context": "Image Processing",
+      "description": "Sistema de extração de metadados de imagens incluindo EXIF (câmera, localização GPS), IPTC (autor, copyright) e XMP (descritores avançados). Essencial para fornecer contexto completo sobre imagens aos agentes de AI.",
+      "businessRules": [
+        "Extrai EXIF, IPTC e XMP quando disponíveis",
+        "Sempre retorna informações básicas (formato, dimensões, tamanho)",
+        "Normaliza coordenadas GPS para decimal degrees",
+        "Trata gracefully metadados corrompidos",
+        "Suporta diferentes encodings de texto nos metadados"
+      ],
+      "useCases": [
+        {
+          "description": "AI precisa saber onde uma foto foi tirada",
+          "name": "Extrair localização GPS de foto",
+          "steps": [
+            "AI chama extract_metadata para imagem",
+            "Sistema lê EXIF data",
+            "Sistema encontra GPSLatitude e GPSLongitude",
+            "Sistema converte para decimal degrees",
+            "AI recebe coordenadas {lat: 37.7749, lng: -122.4194}",
+            "AI pode usar para análises geográficas"
+          ]
+        },
+        {
+          "description": "AI precisa entender configurações de câmera usadas",
+          "name": "Analisar configurações de câmera",
+          "steps": [
+            "AI solicita metadados da imagem",
+            "Sistema extrai dados EXIF de câmera",
+            "Sistema retorna ISO, aperture, shutter speed, focal length",
+            "AI interpreta configurações",
+            "AI fornece insights sobre condições de foto"
+          ]
+        }
+      ],
+      "relatedContracts": [
+        "IMetadataExtractor"
+      ],
+      "relatedPatterns": [
+        "Custom Error Classes Pattern"
+      ],
+      "dependencies": [
+        "exif-reader",
+        "sharp (para metadados básicos)"
+      ],
+      "apiEndpoints": [],
+      "status": "planning",
+      "tags": [
+        "metadata",
+        "exif",
+        "gps",
+        "camera-info"
+      ],
+      "notes": "",
+      "filePaths": [
+        "src/metadata/metadata-extractor.interface.ts",
+        "src/metadata/exif-metadata-extractor.ts",
+        "src/metadata/metadata-types.ts"
+      ],
+      "createdAt": "2026-01-09T14:08:14.640Z",
+      "updatedAt": "2026-01-09T14:08:14.640Z"
+    },
+    {
+      "id": "feat-1767967694641-2ba7vi3ms",
+      "name": "Processamento e Manipula\\u00e7\\u00e3o de Imagens",
+      "context": "Image Processing",
+      "description": "Sistema de processamento e manipulação de imagens com operações como redimensionamento, conversão de formato, otimização e conversão para base64.",
+      "businessRules": [
+        "Suporta redimensionamento mantendo aspect ratio",
+        "Suporta conversão entre formatos",
+        "Operações são não-destrutivas",
+        "Deve otimizar imagens para tamanho reduzido",
+        "Mantém qualidade aceitável após processamento"
+      ],
+      "useCases": [
+        {
+          "description": "AI precisa reduzir tamanho de imagem para economizar tokens",
+          "name": "Redimensionar imagem para thumbnail",
+          "steps": [
+            "AI chama process_image com operação resize",
+            "Sistema redimensiona mantendo aspect ratio",
+            "Sistema otimiza qualidade",
+            "Sistema retorna imagem processada",
+            "AI usa versão menor para análise"
+          ]
+        },
+        {
+          "description": "AI precisa converter formato para compatibilidade",
+          "name": "Converter PNG para JPEG",
+          "steps": [
+            "AI solicita conversão de formato",
+            "Sistema carrega PNG",
+            "Sistema converte para JPEG",
+            "Sistema aplica compressão apropriada",
+            "AI recebe JPEG otimizado"
+          ]
+        }
+      ],
+      "relatedContracts": [
+        "IImageProcessor"
+      ],
+      "relatedPatterns": [
+        "Custom Error Classes Pattern"
+      ],
+      "dependencies": [
+        "sharp"
+      ],
+      "apiEndpoints": [],
+      "status": "planning",
+      "tags": [
+        "image-processing",
+        "resize",
+        "conversion",
+        "optimization"
+      ],
+      "notes": "",
+      "filePaths": [
+        "src/processors/image-processor.interface.ts",
+        "src/processors/sharp-image-processor.ts",
+        "src/processors/resize-options.ts"
+      ],
+      "createdAt": "2026-01-09T14:08:14.641Z",
+      "updatedAt": "2026-01-09T14:08:14.641Z"
+    },
+    {
+      "id": "feat-1767967694642-9bkjq8vww",
+      "name": "MCP Tools para Agentes de AI",
+      "context": "MCP Server",
+      "description": "Conjunto de MCP tools expostos pelo servidor para uso por agentes de AI. Inclui read_image, extract_metadata, process_image, list_supported_formats e batch_process_images.",
+      "businessRules": [
+        "Cada tool deve ter nome único em snake_case",
+        "Todos os tools devem validar inputs com JSON Schema",
+        "Erros devem ser tratados e retornados estruturadamente",
+        "Responses devem seguir formato MCPToolResponse",
+        "Tools devem incluir descrições detalhadas e exemplos"
+      ],
+      "useCases": [
+        {
+          "description": "AI precisa ler e analisar uma imagem",
+          "name": "read_image tool",
+          "steps": [
+            "AI invoca read_image com parâmetros",
+            "Tool valida schema de entrada",
+            "Tool chama ImageReader apropriado",
+            "Tool retorna ImageData em formato MCP",
+            "AI recebe e processa resposta"
+          ]
+        },
+        {
+          "description": "AI precisa processar múltiplas imagens de uma vez",
+          "name": "batch_process_images tool",
+          "steps": [
+            "AI fornece lista de sources",
+            "Tool processa cada imagem sequencialmente",
+            "Tool agrega resultados",
+            "Tool retorna array de ImageData",
+            "AI processa batch de imagens"
+          ]
+        }
+      ],
+      "relatedContracts": [
+        "IMCPTool"
+      ],
+      "relatedPatterns": [
+        "MCP Tool Definition Pattern"
+      ],
+      "dependencies": [
+        "@modelcontextprotocol/sdk"
+      ],
+      "apiEndpoints": [],
+      "status": "planning",
+      "tags": [
+        "mcp",
+        "tools",
+        "ai-agents",
+        "api"
+      ],
+      "notes": "",
+      "filePaths": [
+        "src/tools/read-image.tool.ts",
+        "src/tools/extract-metadata.tool.ts",
+        "src/tools/process-image.tool.ts",
+        "src/tools/list-formats.tool.ts",
+        "src/tools/batch-process.tool.ts",
+        "src/tools/index.ts"
+      ],
+      "createdAt": "2026-01-09T14:08:14.642Z",
+      "updatedAt": "2026-01-09T14:08:14.642Z"
+    },
+    {
+      "id": "feat-1767967694642-t60k5rylw",
+      "name": "VS Code Extension Host",
+      "context": "VS Code Extension",
+      "description": "VS Code extension que hospeda e gerencia o lifecycle do MCP server. Fornece comandos, configurações e integração com a UI do VS Code.",
+      "businessRules": [
+        "Extensão deve auto-iniciar o servidor MCP",
+        "Deve fornecer comandos para controle do servidor",
+        "Deve mostrar status do servidor na status bar",
+        "Deve permitir configuração de settings",
+        "Deve fazer cleanup apropriado no deactivate"
+      ],
+      "useCases": [
+        {
+          "description": "Usuário instala e ativa a extensão",
+          "name": "Ativação da extensão",
+          "steps": [
+            "Usuário instala extensão do Marketplace",
+            "VS Code chama activate()",
+            "Extension inicia MCPServerManager",
+            "Servidor MCP é iniciado",
+            "Status bar mostra 'MCP Server: Running'",
+            "Tools ficam disponíveis para AI agents"
+          ]
+        },
+        {
+          "description": "Usuário precisa reiniciar o servidor",
+          "name": "Controle manual do servidor",
+          "steps": [
+            "Usuário abre Command Palette",
+            "Usuário executa 'MCP Image Reader: Restart Server'",
+            "Extension para servidor atual",
+            "Extension inicia novo servidor",
+            "Status é atualizado na UI"
+          ]
+        }
+      ],
+      "relatedContracts": [],
+      "relatedPatterns": [
+        "VS Code Extension with MCP Server"
+      ],
+      "dependencies": [
+        "vscode",
+        "@modelcontextprotocol/sdk"
+      ],
+      "apiEndpoints": [],
+      "status": "planning",
+      "tags": [
+        "vscode",
+        "extension",
+        "mcp-host",
+        "lifecycle"
+      ],
+      "notes": "",
+      "filePaths": [
+        "src/extension.ts",
+        "src/server-manager.ts",
+        "package.json"
+      ],
+      "createdAt": "2026-01-09T14:08:14.642Z",
+      "updatedAt": "2026-01-09T14:08:14.642Z"
+    }
+  ]
+}

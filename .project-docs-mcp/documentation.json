@@ -1,0 +1,34 @@
+{
+  "documentation": {
+    "guia-de-instala-o-da-extens-o": {
+      "title": "Guia de Instalação da Extensão",
+      "filePath": "docs/extension-installation-guide.md",
+      "topics": [
+        "VSIX packaging",
+        "Extension installation",
+        "VS Code setup",
+        "Claude Desktop config"
+      ],
+      "keywords": [
+        "extension",
+        "installation",
+        "vsix",
+        "vs code",
+        "setup"
+      ],
+      "summary": "Guia completo de instalação e uso da extensão VS Code MCP Image Reader, incluindo criação do VSIX, instalação e configuração com Claude Desktop.",
+      "context": "general",
+      "type": "setup",
+      "relatedContracts": [],
+      "relatedFeatures": [
+        "mcp-image-reader-extension"
+      ],
+      "id": "guia-de-instala-o-da-extens-o",
+      "createdAt": "2026-01-09T16:27:33.717Z",
+      "lastUpdated": "2026-01-09T16:27:33.717Z",
+      "version": 1
+    }
+  },
+  "lastUpdated": "2026-01-09T16:27:33.717Z",
+  "version": "1.0.0"
+}

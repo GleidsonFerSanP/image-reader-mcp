@@ -1,0 +1,131 @@
+{
+    "name": "mcp-image-reader",
+    "displayName": "MCP Image Reader",
+    "description": "MCP server for reading and processing images for AI agents",
+    "version": "0.1.1",
+    "publisher": "GleidsonFerSanP",
+    "author": {
+        "name": "Gleidson FerSanP",
+        "email": "gleidson.ferreirasantos@gmail.com"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/GleidsonFerSanP/mcp-image-reader"
+    },
+    "engines": {
+        "vscode": "^1.85.0",
+        "node": ">=18.0.0"
+    },
+    "categories": [
+        "Other",
+        "Machine Learning"
+    ],
+    "keywords": [
+        "mcp",
+        "image",
+        "ai",
+        "copilot",
+        "vision"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "mcpServerDefinitionProviders": [
+            {
+                "id": "image-reader",
+                "label": "Image Reader"
+            }
+        ],
+        "commands": [
+            {
+                "command": "mcp-image-reader.showInfo",
+                "title": "Show MCP Server Info",
+                "category": "MCP Image Reader"
+            },
+            {
+                "command": "mcp-image-reader.showClaudeConfig",
+                "title": "Show Claude Desktop Config",
+                "category": "MCP Image Reader"
+            }
+        ],
+        "configuration": {
+            "title": "MCP Image Reader",
+            "properties": {
+                "mcpImageReader.maxFileSize": {
+                    "type": "number",
+                    "default": 52428800,
+                    "description": "Maximum file size in bytes (default: 50MB)"
+                },
+                "mcpImageReader.supportedFormats": {
+                    "type": "array",
+                    "default": [
+                        "png",
+                        "jpeg",
+                        "jpg",
+                        "gif",
+                        "webp",
+                        "svg",
+                        "bmp",
+                        "tiff"
+                    ],
+                    "description": "Supported image formats"
+                },
+                "mcpImageReader.batchLimit": {
+                    "type": "number",
+                    "default": 10,
+                    "description": "Maximum number of images to process in batch"
+                },
+                "mcpImageReader.autoOptimize": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically optimize images"
+                },
+                "mcpImageReader.defaultQuality": {
+                    "type": "number",
+                    "default": 85,
+                    "description": "Default quality for image optimization (1-100)"
+                },
+                "mcpImageReader.autoStart": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically start MCP server on extension activation"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "lint:fix": "eslint src --ext ts --fix",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
+        "package": "vsce package",
+        "publish": "vsce publish"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^0.5.0",
+        "sharp": "^0.33.0",
+        "exif-reader": "^2.0.0",
+        "axios": "^1.6.0"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.85.0",
+        "@types/node": "^20.0.0",
+        "@typescript-eslint/eslint-plugin": "^6.15.0",
+        "@typescript-eslint/parser": "^6.15.0",
+        "@types/jest": "^29.5.0",
+        "@vscode/test-electron": "^2.3.0",
+        "@vscode/vsce": "^2.22.0",
+        "eslint": "^8.55.0",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.0",
+        "typescript": "^5.3.0"
+    }
+}

@@ -1,0 +1,144 @@
+{
+  "decisions": [
+    {
+      "title": "Usar Sharp para processamento de imagens",
+      "context": "Precisamos de uma biblioteca eficiente para processar imagens (redimensionar, converter formatos, extrair metadados) que seja rápida, confiável e fácil de instalar. A biblioteca será usada intensivamente pelos MCP tools.",
+      "decision": "Usar Sharp como biblioteca principal de processamento de imagens. Sharp é baseada em libvips (C), oferecendo performance excepcional, e possui bindings nativos pré-compilados para várias plataformas.",
+      "consequences": {
+        "positive": [
+          "Performance 4-8x mais rápida que alternativas em JavaScript puro",
+          "Suporte excelente para múltiplos formatos (JPEG, PNG, WebP, GIF, AVIF, TIFF, SVG)",
+          "API moderna e bem documentada",
+          "Manutenção ativa e comunidade grande",
+          "Suporte built-in para extração de metadados EXIF"
+        ],
+        "negative": [
+          "Requer compilação nativa (binários), pode ter problemas em ambientes restritos",
+          "Tamanho do pacote é maior devido aos binários nativos",
+          "Dependência de binários pode causar issues em algumas plataformas"
+        ]
+      },
+      "alternatives": [
+        "jimp: Biblioteca JavaScript pura, sem dependências nativas, mas mais lenta",
+        "canvas: Baseada no Canvas API do browser, requer compilação nativa",
+        "imagemagick bindings: Muito poderosa mas complexa de instalar"
+      ],
+      "status": "accepted",
+      "id": "ADR-001",
+      "createdAt": "2026-01-09T14:08:57.744Z"
+    },
+    {
+      "title": "Implementar como VS Code Extension",
+      "context": "MCP servers podem ser implementados de várias formas. Precisamos escolher a arquitetura que melhor se integra com o ecossistema VS Code e facilita o uso por agentes de AI, especialmente GitHub Copilot.",
+      "decision": "Implementar como VS Code Extension que hospeda o MCP server internamente. A extensão gerencia o lifecycle do servidor e expõe os tools através do MCP protocol.",
+      "consequences": {
+        "positive": [
+          "Integração nativa com VS Code e GitHub Copilot",
+          "Acesso direto ao workspace do usuário",
+          "UI integrada para configurações e controles",
+          "Auto-start e lifecycle management automático",
+          "Distribuição facilitada via Marketplace",
+          "Usuários não precisam gerenciar processos separados"
+        ],
+        "negative": [
+          "Acoplamento com VS Code, não pode ser usado fora do editor",
+          "Requer instalação via Marketplace ou VSIX",
+          "Processo de desenvolvimento e publicação mais complexo"
+        ]
+      },
+      "alternatives": [
+        "Standalone MCP server: Servidor separado que roda como processo independente",
+        "CLI tool: Ferramenta de linha de comando que agentes chamam via shell",
+        "Web service: API HTTP que agentes acessam via rede"
+      ],
+      "status": "accepted",
+      "id": "ADR-002",
+      "createdAt": "2026-01-09T14:08:57.759Z"
+    },
+    {
+      "title": "Retornar imagens como base64 em responses MCP",
+      "context": "Agentes de AI precisam consumir imagens de forma eficiente. O formato de retorno precisa ser compatível com vision APIs e facilitar o uso em conversas de chat.",
+      "decision": "Retornar imagens como base64 strings dentro de MCPToolResponse com tipo 'image' e mimeType apropriado. Incluir também metadados estruturados (dimensões, formato, tamanho).",
+      "consequences": {
+        "positive": [
+          "Formato universal, funciona em qualquer contexto JSON/texto",
+          "Diretamente compatível com vision APIs (GPT-4V, Claude, etc)",
+          "Não requer transferência de arquivos separada",
+          "Facilita debugging e logging",
+          "Suportado nativamente pelo MCP protocol"
+        ],
+        "negative": [
+          "Base64 aumenta tamanho em ~33% comparado a binário puro",
+          "Pode impactar uso de tokens em modelos de linguagem",
+          "Serialização/deserialização adiciona overhead"
+        ]
+      },
+      "alternatives": [
+        "Retornar apenas URL/path: Agente teria que fazer outra requisição",
+        "Retornar apenas buffer binário: Difícil de trabalhar para agentes de texto",
+        "Usar URL de dados (data:image/*): Prolixo e redundante com base64"
+      ],
+      "status": "accepted",
+      "id": "ADR-003",
+      "createdAt": "2026-01-09T14:08:57.760Z"
+    },
+    {
+      "title": "Usar TypeScript com strict mode",
+      "context": "Precisamos escolher a linguagem de implementação que melhor equilibra produtividade, type safety, performance e compatibilidade com o ecossistema MCP e VS Code.",
+      "decision": "Usar TypeScript como linguagem principal do projeto. Todo o código será escrito em TypeScript com strict mode habilitado.",
+      "consequences": {
+        "positive": [
+          "Type safety previne bugs em tempo de desenvolvimento",
+          "Excelente suporte de IDE (autocomplete, refactoring)",
+          "Compatibilidade perfeita com VS Code Extension API",
+          "MCP SDK tem tipos TypeScript first-class",
+          "Facilita manutenção e colaboração",
+          "Documentação implícita via tipos"
+        ],
+        "negative": [
+          "Requer etapa de compilação/transpilação",
+          "Build setup mais complexo que JavaScript puro",
+          "Pode ser mais verboso em alguns casos"
+        ]
+      },
+      "alternatives": [
+        "JavaScript: Mais simples, sem overhead de compilação",
+        "Python: Rico ecossistema de image processing",
+        "Rust: Performance máxima mas curva de aprendizado alta"
+      ],
+      "status": "accepted",
+      "id": "ADR-004",
+      "createdAt": "2026-01-09T14:08:57.760Z"
+    },
+    {
+      "title": "Batch processing sequencial com limite de 10 imagens",
+      "context": "Agentes podem precisar processar múltiplas imagens simultaneamente. Precisamos balancear performance, uso de memória e simplicidade de implementação.",
+      "decision": "Implementar batch processing sequencial com um limite de 10 imagens por batch. Processar uma imagem de cada vez, liberando memória entre processamentos.",
+      "consequences": {
+        "positive": [
+          "Implementação simples e fácil de manter",
+          "Uso de memória previsível e controlado",
+          "Evita race conditions e complexidade de concorrência",
+          "Funciona bem para casos de uso típicos (< 10 imagens)",
+          "Facilita error handling granular",
+          "Permite progress reporting futuro"
+        ],
+        "negative": [
+          "Não aproveita paralelismo de CPU multi-core",
+          "Pode ser mais lento que processamento paralelo",
+          "Limita throughput máximo"
+        ]
+      },
+      "alternatives": [
+        "Processar todas de uma vez: Mais rápido mas pode consumir muita memória",
+        "Worker threads: Complexidade adicional de paralelização",
+        "Rejeitar batch requests: Forçar agentes a fazer requests individuais"
+      ],
+      "status": "accepted",
+      "id": "ADR-005",
+      "createdAt": "2026-01-09T14:08:57.761Z"
+    }
+  ],
+  "lastUpdated": "2026-01-09T14:08:57.761Z",
+  "version": "1.0.0"
+}
