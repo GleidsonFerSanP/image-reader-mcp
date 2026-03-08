@@ -1,0 +1,1 @@
+{"version":3,"file":"image-reader.interface.d.ts","sourceRoot":"","sources":["../../src/readers/image-reader.interface.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAE,MAAM,qBAAqB,CAAC;AAEhD;;;;;;;;GAQG;AACH,MAAM,WAAW,YAAY;IAC3B;;;;;;OAMG;IACH,IAAI,CAAC,MAAM,EAAE,MAAM,GAAG,MAAM,GAAG,OAAO,CAAC,SAAS,CAAC,CAAC;IAElD;;;;OAIG;IACH,QAAQ,CAAC,MAAM,EAAE,MAAM,GAAG,OAAO,CAAC;CACnC"}

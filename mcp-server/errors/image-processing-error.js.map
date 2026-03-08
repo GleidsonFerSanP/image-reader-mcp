@@ -1,0 +1,1 @@
+{"version":3,"file":"image-processing-error.js","sourceRoot":"","sources":["../../src/errors/image-processing-error.ts"],"names":[],"mappings":";;;AAAA,iDAA6C;AAE7C;;GAEG;AACH,MAAa,oBAAqB,SAAQ,0BAAW;IAGjC;IAFlB,YACE,OAAe,EACC,SAAiB,EACjC,KAAa;QAEb,KAAK,CAAC,OAAO,EAAE,EAAE,SAAS,EAAE,EAAE,KAAK,CAAC,CAAC;QAHrB,cAAS,GAAT,SAAS,CAAQ;IAInC,CAAC;CACF;AARD,oDAQC"}
